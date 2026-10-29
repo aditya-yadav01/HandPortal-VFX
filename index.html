@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#070a12">
+<title>HAND PORTAL // VFX LAB</title>
+<style>
+:root{--bg:#070a12;--panel:#101624;--line:#26364b;--cyan:#5ef6ff;--violet:#9a72ff;--text:#edf7ff;--muted:#8ba1b7}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 50% -20%,#172b45 0%,#070a12 55%);color:var(--text);font:14px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;min-height:100vh}
+header{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px clamp(16px,4vw,48px);border-bottom:1px solid #24344a;background:#070a12d9;position:sticky;top:0;z-index:5;backdrop-filter:blur(14px)}
+.brand{font-size:16px;font-weight:900;letter-spacing:.16em}.brand span{color:var(--cyan)}
+.kicker{font-size:10px;color:var(--muted);letter-spacing:.18em;margin-top:4px}
+.status{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:11px}.dot{width:7px;height:7px;border-radius:50%;background:#617086;box-shadow:0 0 10px currentColor}.dot.live{background:#68ffb1;color:#68ffb1}
+main{max-width:1440px;margin:auto;padding:24px clamp(12px,3vw,36px) 42px}
+.intro{display:flex;align-items:end;justify-content:space-between;gap:18px;margin-bottom:18px}.intro h1{font-size:clamp(24px,4vw,42px);line-height:1.05;letter-spacing:-.06em;margin:0}.intro h1 em{font-style:normal;color:var(--cyan)}.intro p{color:var(--muted);max-width:560px;margin:10px 0 0;font:12px/1.6 system-ui,sans-serif}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px}
+.stage-panel,.side-panel{background:linear-gradient(145deg,#111a2a,#0b101b);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 18px 70px #0005}
+.stage-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 15px;border-bottom:1px solid var(--line);font-size:10px;letter-spacing:.12em;color:var(--muted)}
+.stage-top strong{color:var(--cyan);font-weight:700}
+.stage{position:relative;aspect-ratio:16/10;background:radial-gradient(ellipse,#14253b,#05070c 70%);overflow:hidden}
+canvas{width:100%;height:100%;display:block;object-fit:contain}
+.overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;background:linear-gradient(145deg,#08111ed9,#05070be8);transition:opacity .25s}
+.overlay.hidden{opacity:0;pointer-events:none}
+.orb{width:66px;height:66px;border:1px solid var(--cyan);border-radius:50%;box-shadow:0 0 20px #5ef6ff66,inset 0 0 20px #5ef6ff22;margin-bottom:18px;position:relative}
+.orb:before,.orb:after{content:"";position:absolute;inset:9px;border:1px dashed #9a72ff;border-radius:50%;animation:spin 8s linear infinite}.orb:after{inset:-8px;border-color:#5ef6ff55;animation-direction:reverse;animation-duration:12s}
+@keyframes spin{to{transform:rotate(360deg)}}
+.overlay h2{font-size:18px;letter-spacing:.12em;margin:0 0 8px}.overlay p{font:12px/1.6 system-ui,sans-serif;color:var(--muted);max-width:350px;margin:0 0 18px}
+button{font:inherit;cursor:pointer;border:1px solid #39516c;color:var(--text);background:#111d2c;border-radius:8px;padding:10px 13px;transition:.18s}
+button:hover{border-color:var(--cyan);box-shadow:0 0 18px #5ef6ff18}button.primary{background:var(--cyan);color:#031016;border-color:var(--cyan);font-weight:900}
+button:disabled{opacity:.45;cursor:wait}
+.controls{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:12px 14px;border-top:1px solid var(--line)}
+.effect-name{margin-left:auto;color:var(--cyan);font-size:11px;letter-spacing:.1em;text-align:right}
+.side-panel{padding:16px}.section-label{color:var(--muted);font-size:10px;letter-spacing:.16em;margin:0 0 12px}
+.now-card{border:1px solid #31465f;border-radius:10px;padding:14px;background:linear-gradient(135deg,#16263a,#0b111d);margin-bottom:18px}
+.now-card .small{font-size:9px;color:var(--muted);letter-spacing:.15em}.now-card h2{font-size:18px;color:var(--cyan);margin:8px 0 4px;overflow-wrap:anywhere}.now-card p{margin:0;color:var(--muted);font:12px system-ui,sans-serif}
+.progress{height:3px;background:#27364b;margin-top:14px;border-radius:4px;overflow:hidden}.progress span{height:100%;display:block;width:0;background:linear-gradient(90deg,var(--cyan),var(--violet))}
+.grid-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.grid-head .section-label{margin:0}
+.effect-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;max-height:400px;overflow:auto;padding:10px 3px 8px 0}
+.effect-grid button{font-size:10px;text-align:left;padding:9px 8px;white-space:normal;min-height:34px;border-color:#24344a;color:#b5c8d9;background:#0b111c}
+.effect-grid button.active{color:#061016;background:var(--cyan);border-color:var(--cyan);font-weight:900}
+.privacy{margin-top:16px;border-top:1px solid var(--line);padding-top:13px;color:var(--muted);font:11px/1.6 system-ui,sans-serif}.privacy strong{color:#dceaff}
+.hint{color:var(--muted);font:11px/1.6 system-ui,sans-serif;margin:12px 2px 0}
+footer{display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap;padding:18px clamp(16px,4vw,48px);border-top:1px solid #1e2a3b;color:#657a91;font-size:10px;letter-spacing:.08em}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.side-panel{display:grid;grid-template-columns:1fr;}.effect-grid{max-height:260px}.intro{display:block}.status{margin-top:10px}}
+@media(max-width:540px){header{align-items:flex-start}.brand{font-size:13px}.stage{aspect-ratio:4/5}.stage-top{font-size:9px}.effect-name{width:100%;margin-left:0;text-align:left}.controls button{flex:1}.overlay h2{font-size:14px}}
+</style>
+</head>
+<body>
+<header>
+  <div><div class="brand">HAND<span>PORTAL</span> / VFX LAB</div><div class="kicker">REAL-TIME SPATIAL EFFECT ENGINE</div></div>
+  <div class="status"><span id="statusDot" class="dot"></span><span id="statusText">SYSTEM STANDBY</span></div>
+</header>
+<main>
+  <div class="intro">
+    <div><h1>Open a <em>window</em><br>into another reality.</h1><p>Place both hands in view. The portal is shaped by the thumb and index fingertips of each hand. Choose an effect or let the system cycle through all 48.</p></div>
+  </div>
+  <div class="layout">
+    <section class="stage-panel">
+      <div class="stage-top"><span>CAM_01 // LIVE INPUT</span><strong id="handStatus">AWAITING CAMERA</strong><span>LOCAL PROCESSING</span></div>
+      <div class="stage">
+        <canvas id="view" width="960" height="600" aria-label="Live camera and portal effects"></canvas>
+        <div id="overlay" class="overlay">
+          <div class="orb"></div>
+          <h2>PORTAL ENGINE STANDBY</h2>
+          <p>Enable your camera to begin. Your camera feed is processed in this browser and is not uploaded by this page.</p>
+          <button id="startBtn" class="primary">INITIALIZE CAMERA ↗</button>
+          <p id="errorText" style="color:#ff9baf;margin-top:12px"></p>
+        </div>
+      </div>
+      <div class="controls">
+        <button id="prevBtn" aria-label="Previous effect">← PREV</button>
+        <button id="nextBtn" aria-label="Next effect">NEXT →</button>
+        <button id="autoBtn" class="primary">AUTO: ON</button>
+        <button id="stopBtn">STOP CAMERA</button>
+        <span id="effectCounter" class="effect-name">01 / 48</span>
+      </div>
+    </section>
+    <aside class="side-panel">
+      <div class="now-card">
+        <div class="small">CURRENT REALITY FILTER</div>
+        <h2 id="currentName">THERMAL</h2>
+        <p id="currentDescription">Portal effect ready to initialize.</p>
+        <div class="progress"><span id="progressBar"></span></div>
+      </div>
+      <div class="grid-head"><p class="section-label">EFFECT DATABASE</p><p class="section-label">48 MODES</p></div>
+      <div id="effectGrid" class="effect-grid"></div>
+      <p class="hint">TIP: Keep both hands visible. The portal boundary connects each hand's thumb tip and index fingertip, then wraps them in a convex hull.</p>
+      <div class="privacy"><strong>PRIVACY / CAMERA</strong><br>Camera permission is requested only after you press Initialize. Video frames are processed on your device. MediaPipe's model and runtime are loaded from external CDNs; this page does not send your camera video to a server.</div>
+    </aside>
+  </div>
+</main>
+<footer><span>HANDPORTAL // EXPERIMENTAL WEB BUILD</span><span>NO ACCOUNT · NO UPLOAD · CAMERA PERMISSION REQUIRED</span></footer>
+
+<script type="module">
+import { FilesetResolver, HandLandmarker } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.32/+esm";
+
+const effects = [
+["THERMAL","Hot infrared palette"],["INVERT","Negative color space"],["GRAYSCALE","Monochrome signal"],["NEON","Electric neon glow"],["PIXEL","Digital pixelation"],["BLUR","Dreamlike soft focus"],["NIGHT VISION","Green low-light scan"],["INFRARED","Crimson infrared spectrum"],
+["X-RAY EDGES","Edge-detected spectral view"],["CYBERPUNK","Neon magenta and cyan"],["RGB GLITCH","Chromatic channel shift"],["VINTAGE FILM","Faded analog color"],["TEAL & ORANGE","Cinematic contrast"],["DREAM GLOW","Soft luminous haze"],["HOLOGRAM","Cool holographic sheen"],["COMIC BOOK","Punchy illustrated contrast"],
+["BLUEPRINT","Technical blue scan"],["SOLARIZE","Solarized color inversion"],["EMBOSS","Relief-like monochrome"],["HEAT MAP","Hotspot color spectrum"],["MATRIX GREEN","Green digital realm"],["VHS","Analog tape distortion"],["SKETCH","Pencil-like contrast"],["DUOTONE","Two-color posterization"],
+["SCARLET PROTOCOL","Crimson cinematic mode"],["QUANTUM RIFT","Prismatic reality split"],["VOID REALM","Deep shadow spectrum"],["PLASMA STORM","Electric warm spectrum"],["RADIATION CORE","Toxic lime energy"],["COSMIC DUST","Violet-blue cosmos"],["PREDATOR VISION","Amber targeting view"],["SPECTRAL SCAN","Blue spectral analysis"],
+["RADIATION SCAN","Acid green scan"],["DEPTH SCANNER","High-contrast depth look"],["MOTION ECHO","Echo-like visual trail"],["TARGET LOCK","High-contrast tracking"],["LIQUID CHROME","Metallic monochrome"],["PRISM SPLIT","Rainbow color separation"],["MIRROR WORLD","Cool mirrored dimension"],["ELECTRIC STORM","Blue-violet voltage"],
+["GLITCH DIMENSION","Corrupted digital color"],["RAINBOW SPECTRUM","Full spectrum color"],["NOIR","High-contrast black and white"],["GOLDEN HOUR","Warm amber light"],["ARCTIC FREEZE","Cold icy blue"],["ACID DREAM","Saturated acid colors"],["DOUBLE EXPOSURE","Layered ghosted color"],["OLD MONITOR","Retro phosphor display"]
+];
+const cssFilters = [
+"saturate(2.2) hue-rotate(145deg) contrast(1.25)","invert(1) hue-rotate(180deg)","grayscale(1) contrast(1.15)","saturate(2.8) hue-rotate(250deg) contrast(1.2)","contrast(1.25) saturate(1.4)","blur(2px) saturate(1.3)","grayscale(.35) sepia(.5) hue-rotate(65deg) saturate(2.8) contrast(1.25)","sepia(1) saturate(5) hue-rotate(315deg) contrast(1.2)",
+"grayscale(1) contrast(2.6)","saturate(2.5) hue-rotate(285deg) contrast(1.2)","saturate(2.2) contrast(1.3)","sepia(.55) saturate(.8) contrast(.9)","sepia(.35) saturate(1.5) hue-rotate(145deg) contrast(1.15)","saturate(1.3) brightness(1.25) blur(.5px)","hue-rotate(165deg) saturate(1.7) brightness(1.2)","saturate(1.8) contrast(1.6)",
+"hue-rotate(175deg) saturate(1.5) contrast(1.4)","invert(.85) saturate(1.8)","grayscale(1) contrast(1.6)","hue-rotate(90deg) saturate(2.5) contrast(1.2)","grayscale(.4) hue-rotate(80deg) saturate(2.8) contrast(1.2)","saturate(1.5) contrast(1.25) brightness(.9)","grayscale(1) contrast(1.5) brightness(1.15)","grayscale(.7) sepia(.9) saturate(2)",
+"sepia(.8) saturate(2.4) hue-rotate(320deg) contrast(1.3)","hue-rotate(220deg) saturate(2.5) contrast(1.2)","brightness(.6) contrast(1.7) saturate(.8)","hue-rotate(320deg) saturate(2.5) contrast(1.3)","hue-rotate(60deg) saturate(3) contrast(1.3)","hue-rotate(220deg) saturate(2.2) contrast(1.2)","sepia(.8) saturate(2.8) contrast(1.3)","hue-rotate(180deg) saturate(1.8) contrast(1.4)",
+"hue-rotate(65deg) saturate(3.2) contrast(1.4)","grayscale(.4) contrast(1.8) brightness(.85)","saturate(1.5) contrast(1.2)","grayscale(.2) contrast(2) brightness(1.05)","grayscale(1) contrast(1.5) brightness(1.15)","saturate(2.8) hue-rotate(35deg) contrast(1.2)","hue-rotate(190deg) saturate(1.7)","hue-rotate(210deg) saturate(2.5) contrast(1.25)",
+"saturate(2.2) contrast(1.4) hue-rotate(255deg)","saturate(2.7) hue-rotate(30deg)","grayscale(1) contrast(1.8)","sepia(.7) saturate(1.8) brightness(1.12)","hue-rotate(175deg) saturate(1.6) brightness(1.1)","saturate(3.3) hue-rotate(270deg) contrast(1.2)","saturate(1.4) contrast(1.2)","grayscale(.6) sepia(.4) hue-rotate(65deg) contrast(1.3)"
+];
+const canvas=document.querySelector("#view"), ctx=canvas.getContext("2d",{willReadFrequently:true});
+const overlay=document.querySelector("#overlay"), startBtn=document.querySelector("#startBtn"), stopBtn=document.querySelector("#stopBtn");
+const statusDot=document.querySelector("#statusDot"), statusText=document.querySelector("#statusText"), handStatus=document.querySelector("#handStatus");
+const currentName=document.querySelector("#currentName"), currentDescription=document.querySelector("#currentDescription"), effectCounter=document.querySelector("#effectCounter"), progressBar=document.querySelector("#progressBar");
+const grid=document.querySelector("#effectGrid"), autoBtn=document.querySelector("#autoBtn"), errorText=document.querySelector("#errorText");
+let active=0, auto=true, stream=null, landmarker=null, running=false, lastVideoTime=-1, lastAutoChange=performance.now(), raf=0;
+const video=document.createElement("video"); video.playsInline=true; video.muted=true; video.autoplay=true;
+const effectCanvas=document.createElement("canvas"), effectCtx=effectCanvas.getContext("2d");
+const sourceCanvas=document.createElement("canvas"), sourceCtx=sourceCanvas.getContext("2d",{willReadFrequently:true});
+const descriptions=effects.map(e=>e[1]);
+function setEffect(index){active=(index+effects.length)%effects.length;lastAutoChange=performance.now();currentName.textContent=effects[active][0];currentDescription.textContent=descriptions[active];effectCounter.textContent=String(active+1).padStart(2,"0")+" / 48";progressBar.style.width=((active+1)/48*100)+"%";[...grid.children].forEach((b,i)=>b.classList.toggle("active",i===active));}
+effects.forEach((e,i)=>{const b=document.createElement("button");b.textContent=String(i+1).padStart(2,"0")+"  "+e[0];b.addEventListener("click",()=>setEffect(i));grid.appendChild(b);});
+setEffect(0);
+document.querySelector("#prevBtn").addEventListener("click",()=>setEffect(active-1));
+document.querySelector("#nextBtn").addEventListener("click",()=>setEffect(active+1));
+autoBtn.addEventListener("click",()=>{auto=!auto;autoBtn.textContent="AUTO: "+(auto?"ON":"OFF");autoBtn.classList.toggle("primary",auto);lastAutoChange=performance.now();});
+function status(text,live=false){statusText.textContent=text;statusDot.classList.toggle("live",live);}
+function resizeCanvases(w,h){canvas.width=w;canvas.height=h;effectCanvas.width=w;effectCanvas.height=h;sourceCanvas.width=w;sourceCanvas.height=h;}
+function convexHull(points){
+ if(points.length<3)return points;
+ const p=points.slice().sort((a,b)=>a.x-b.x||a.y-b.y);
+ const cross=(o,a,b)=>(a.x-o.x)*(b.y-o.y)-(a.y-o.y)*(b.x-o.x);
+ const lo=[];for(const q of p){while(lo.length>=2&&cross(lo[lo.length-2],lo[lo.length-1],q)<=0)lo.pop();lo.push(q);}
+ const hi=[];for(let i=p.length-1;i>=0;i--){const q=p[i];while(hi.length>=2&&cross(hi[hi.length-2],hi[hi.length-1],q)<=0)hi.pop();hi.push(q);}
+ lo.pop();hi.pop();return lo.concat(hi);
+}
+function polygonPath(points){ctx.beginPath();ctx.moveTo(points[0].x,points[0].y);for(let i=1;i<points.length;i++)ctx.lineTo(points[i].x,points[i].y);ctx.closePath();}
+function overlayColor(i){
+ const colors=["#ff4b24","#ffffff","#ffffff","#62faff","#b7f5ff","#d9caff","#9bff45","#ff382f","#e8f8ff","#ff42ed","#00f7ff","#e9b780","#ff9b5e","#d5c9ff","#64f8ff","#ffdb63","#55aaff","#fff85c","#c4d7e8","#ff5c36","#65ff8e","#d9f4ff","#e3e3e3","#ffc7c7","#ff334d","#8b72ff","#4d2c8f","#ff643c","#c5ff28","#b09cff","#ffc25d","#5ee7ff","#b6ff27","#82d9ff","#62f6ff","#ff4343","#dbe9ff","#ff75ff","#72f8ff","#9e86ff","#d0ff45","#ff71d8","#ffffff","#ffb65e","#87eaff","#b5ff20","#d6e5ff","#7dff9b"];
+ return colors[i];
+}
+function drawSpecial(i,w,h,points){
+ const color=overlayColor(i);
+ ctx.save();polygonPath(points);ctx.clip();ctx.globalCompositeOperation="screen";
+ if([3,9,14,25,28,29,35,37,39,41,44,45].includes(i)){
+   ctx.lineWidth=Math.max(2,w/300);ctx.strokeStyle=color;ctx.shadowColor=color;ctx.shadowBlur=18;polygonPath(points);ctx.stroke();
+   ctx.lineWidth=1;ctx.globalAlpha=.35;ctx.setLineDash([7,9]);polygonPath(points);ctx.stroke();ctx.setLineDash([]);
+ }
+ if([10,21,24,25,27,28,30,32,34,35,37,38,40,41,45,46,47].includes(i)){
+   ctx.globalAlpha=.23;ctx.fillStyle=color;ctx.font=`bold ${Math.max(12,w/35)}px monospace`;
+   for(let y=20;y<h;y+=Math.max(22,h/24)){ctx.fillText(i===21?"PLAY ▷ ▷":i===30?"TARGET // "+Math.round(Math.random()*999):i===47?"SCAN_LINE":i===40?"GLITCH_"+Math.round(Math.random()*99):"// "+effects[i][0],12,y);}
+ }
+ if([3,13,14,25,29,37,39,41,45].includes(i)){
+   ctx.globalAlpha=.18;ctx.strokeStyle=color;ctx.lineWidth=1;
+   for(let k=1;k<7;k++){ctx.beginPath();ctx.ellipse(w*.5,h*.5,w*k*.055,h*k*.055,performance.now()*.0001,0,Math.PI*2);ctx.stroke();}
+ }
+ ctx.restore();
+}
+function applyPortal(points){
+ const w=canvas.width,h=canvas.height;
+ sourceCtx.save();sourceCtx.translate(w,0);sourceCtx.scale(-1,1);sourceCtx.drawImage(video,0,0,w,h);sourceCtx.restore();
+ effectCtx.clearRect(0,0,w,h);
+ effectCtx.save();effectCtx.filter=cssFilters[active]||"none";effectCtx.drawImage(sourceCanvas,0,0);effectCtx.restore();
+ // Add distinct effect treatments before clipping to the portal shape.
+ if([3,9,13,14,25,28,29,35,37,39,41,45,47].includes(active)){
+   effectCtx.save();effectCtx.globalCompositeOperation="screen";effectCtx.globalAlpha=.23;
+   effectCtx.filter=active===37?"hue-rotate(90deg)":"contrast(1.6) saturate(2)";
+   effectCtx.drawImage(sourceCanvas,active===10?7:2,0,w,h);effectCtx.restore();
+ }
+ ctx.save();polygonPath(points);ctx.clip();
+ ctx.drawImage(effectCanvas,0,0);
+ if([4,16,20,21,23,26,32,34,40,47].includes(active)){
+   ctx.globalAlpha=.18;ctx.fillStyle=overlayColor(active);
+   const step=active===4?8:active===47?4:12;
+   for(let y=0;y<h;y+=step){ctx.fillRect(0,y,w,Math.max(1,step*.25));}
+ }
+ if([10,25,37,40].includes(active)){
+   ctx.globalAlpha=.16;ctx.drawImage(effectCanvas,Math.sin(performance.now()*.01)*8,0,w,h);
+ }
+ ctx.restore();
+ drawSpecial(active,w,h,points);
+ // Bright portal edge and corner markers.
+ ctx.save();ctx.globalCompositeOperation="screen";ctx.lineJoin="round";ctx.strokeStyle=overlayColor(active);ctx.lineWidth=Math.max(2,w/360);ctx.shadowColor=overlayColor(active);ctx.shadowBlur=22;polygonPath(points);ctx.stroke();ctx.shadowBlur=0;ctx.lineWidth=1;ctx.strokeStyle="#eafcff";ctx.globalAlpha=.7;polygonPath(points);ctx.stroke();
+ for(const p of points){ctx.beginPath();ctx.arc(p.x,p.y,Math.max(4,w/140),0,Math.PI*2);ctx.fillStyle=overlayColor(active);ctx.fill();ctx.beginPath();ctx.arc(p.x,p.y,Math.max(8,w/90),0,Math.PI*2);ctx.strokeStyle=overlayColor(active);ctx.stroke();}
+ ctx.restore();
+}
+function drawFrame(){
+ if(!running)return;
+ if(video.readyState>=2){
+   const w=video.videoWidth||960,h=video.videoHeight||600;
+   if(canvas.width!==w||canvas.height!==h)resizeCanvases(w,h);
+   ctx.clearRect(0,0,w,h);
+   // Mirrored camera background, like a selfie view.
+   ctx.save();ctx.translate(w,0);ctx.scale(-1,1);ctx.drawImage(video,0,0,w,h);ctx.restore();
+   if(landmarker&&video.currentTime!==lastVideoTime){
+     lastVideoTime=video.currentTime;
+     try{
+       const result=landmarker.detectForVideo(video,performance.now());
+       const hands=result.landmarks||[];
+       if(hands.length>=2){
+         const points=[];
+         for(let i=0;i<2;i++){
+           // Landmark 4 = thumb tip; landmark 8 = index fingertip.
+           for(const id of [4,8])points.push({x:(1-hands[i][id].x)*w,y:hands[i][id].y*h});
+         }
+         const hull=convexHull(points);
+         if(hull.length>=3){applyPortal(hull);handStatus.textContent="2 HANDS // PORTAL ACTIVE";handStatus.style.color="var(--cyan)";}
+       }else{
+         handStatus.textContent=hands.length===1?"1 HAND // NEED 2":"SEARCHING FOR HANDS";handStatus.style.color="var(--muted)";
+       }
+     }catch(e){console.error(e);}
+   }
+   if(auto&&performance.now()-lastAutoChange>=3000)setEffect(active+1);
+ }
+ raf=requestAnimationFrame(drawFrame);
+}
+async function startCamera(){
+ startBtn.disabled=true;errorText.textContent="Loading hand-tracking model…";status("INITIALIZING",false);
+ try{
+   if(!navigator.mediaDevices?.getUserMedia)throw new Error("Camera access needs HTTPS or localhost. Open the GitHub Pages site, not a plain file.");
+   stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:960},height:{ideal:600}},audio:false});
+   video.srcObject=stream;await video.play();
+   const vision=await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.32/wasm");
+   landmarker=await HandLandmarker.createFromOptions(vision,{
+     baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task"},
+     runningMode:"VIDEO",numHands:2,minHandDetectionConfidence:.55,minHandPresenceConfidence:.5,minTrackingConfidence:.5
+   });
+   running=true;lastVideoTime=-1;overlay.classList.add("hidden");status("CAMERA ONLINE",true);handStatus.textContent="SEARCHING FOR HANDS";errorText.textContent="";drawFrame();
+ }catch(err){
+   console.error(err);if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
+   errorText.textContent=err?.message||"Could not start camera. Check camera permission and reload.";
+   status("INITIALIZATION FAILED",false);startBtn.disabled=false;
+ }
+}
+function stopCamera(){
+ running=false;cancelAnimationFrame(raf);if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}video.srcObject=null;
+ landmarker?.close();landmarker=null;ctx.clearRect(0,0,canvas.width,canvas.height);status("SYSTEM STANDBY",false);handStatus.textContent="AWAITING CAMERA";overlay.classList.remove("hidden");startBtn.disabled=false;errorText.textContent="Camera stopped.";
+}
+startBtn.addEventListener("click",startCamera);stopBtn.addEventListener("click",stopCamera);
+window.addEventListener("beforeunload",()=>{if(stream)stream.getTracks().forEach(t=>t.stop());});
+</script>
+</body>
+</html>
